@@ -1,0 +1,60 @@
+console.log("page speed booster script");
+let _cz_url, _cz_mouse_caltd_time, _cz_last_touch_ts;
+const _cz_p_fetcher = document.createElement("link"),
+    _cz_supporting = _cz_p_fetcher.relList && _cz_p_fetcher.relList.supports && _cz_p_fetcher.relList.supports("prefetch"),
+    _cz_d_saver = navigator.connection && navigator.connection.saveData,
+    _cz_allow_query_string = "instantAllowQueryString" in document.body.dataset,
+    _cz_allow_external_links = "instantAllowExternalLinks" in document.body.dataset;
+if (_cz_supporting && !_cz_d_saver) {
+    _cz_p_fetcher.rel = "prefetch", document.head.appendChild(_cz_p_fetcher);
+    const e = {
+        capture: !0,
+        passive: !0
+    };
+    document.addEventListener("touchstart", _cz_touck_start_listener, e), document.addEventListener("mouseover", _cz_mouse_over_listner, e)
+}
+
+
+
+function _cz_mouse_over_listner(e) {
+    if (performance.now() - _cz_last_touch_ts < 1100) return;
+    const t = e.target.closest("a");
+    _cz_is_pre_loadable(t) && (t.addEventListener("mouseout", _cz_mouse_out_listner, {
+        passive: !0
+    }), _cz_url = t.href, _cz_mouse_caltd_time = setTimeout(() => {
+        _cz_pre_load(t.href), _cz_mouse_caltd_time = void 0
+    }, 65))
+}
+
+function _cz_touch_touch_cancel_listner() {
+    _cz_url = void 0, _cz_stop_pre_loading()
+}
+
+function _cz_touck_start_listener(e) {
+    _cz_last_touch_ts = performance.now();
+    const t = e.target.closest("a");
+    _cz_is_pre_loadable(t) && (t.addEventListener("touchcancel", _cz_touch_touch_cancel_listner, {
+        passive: !0
+    }), t.addEventListener("touchend", _cz_touch_touch_cancel_listner, {
+        passive: !0
+    }), _cz_url = t.href, _cz_pre_load(t.href))
+}
+
+function _cz_stop_pre_loading() {
+    _cz_p_fetcher.removeAttribute("href")
+}
+
+function _cz_pre_load(e) {
+    _cz_p_fetcher.href = e
+}
+
+function _cz_is_pre_loadable(e) {
+    if (!e || !e.href) return;
+    if (_cz_url == e.href) return;
+    const t = new URL(e.href);
+    return !(!(_cz_allow_external_links || t.origin == location.origin || "instant" in e.dataset) || !["http:", "https:"].includes(t.protocol) || "http:" == t.protocol && "https:" == location.protocol || !(_cz_allow_query_string || !t.search || "instant" in e.dataset) || t.hash && t.pathname + t.search == location.pathname + location.search || "noInstant" in e.dataset) || void 0
+}
+
+function _cz_mouse_out_listner(e) {
+    e.relatedTarget && e.target.closest("a") == e.relatedTarget.closest("a") || (_cz_mouse_caltd_time ? (clearTimeout(_cz_mouse_caltd_time), _cz_mouse_caltd_time = void 0) : (_cz_url = void 0, _cz_stop_pre_loading()))
+}
